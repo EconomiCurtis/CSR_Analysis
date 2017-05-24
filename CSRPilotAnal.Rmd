@@ -1,0 +1,633 @@
+---
+title: "CSR Pilot Analysis"
+output: html_notebook
+---
+
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE}
+#' for workign with rmarkdown,  
+#' see https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf 
+
+source("etl.r")
+library(knitr) #for the kable tables
+library(tidyr)
+library(ggplot2)
+```
+
+
+```{r, echo = FALSE, message=FALSE}
+
+df = ret %>%
+  group_by(participant.code)%>%
+  # filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct* 100) %>% round(0) %>% paste("%", sep="") ,
+    ret_score = max(player.ret_final_score)
+  ) %>%
+  select(-1) %>%
+  arrange(desc(ret_correct))
+
+kable(
+  format = "markdown", 
+  col.names = c("RET<br>Tried", "RET<br>Correct", "Rate", "Score"),
+  align='c',
+  df
+)
+
+```
+
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4}
+
+ggplot(
+  ret %>%
+  group_by(participant.code) %>%
+  filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct)
+  ) %>%
+  arrange(desc(ret_correct)),
+  aes(x = ret_tried,
+      y = ret_correct)
+) +
+  geom_point()
+
+ggplot(
+  ret %>%
+  group_by(participant.code) %>%
+  filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct),
+    Score = as.numeric(max(player.ret_final_score))
+  ) %>%
+  arrange(desc(ret_correct)),
+  aes(x = ret_correct,
+      y = Score)
+) +
+  geom_jitter(
+    alpha = .5,
+    height = 0) +
+  ggplot2::ylim(40,60) +
+  labs(
+    x = "Number of Correct Typing Tasks",
+    y = "Score",
+    title = "Real Effort Task",
+    theme_bw(base_size = 11, base_family = ""),
+    theme(plot.title = element_text(hjust = 0.5))
+  ) +
+  theme_light()
+
+ggplot(
+  ret %>%
+  group_by(participant.code) %>%
+  filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct),
+    Score = max(player.ret_final_score)
+  ) %>%
+  arrange(desc(ret_correct)),
+  aes(x = ret_correct,
+      y = ret_correctRate)
+) +
+  geom_point()
+
+ggplot(
+  ret %>%
+  group_by(participant.code) %>%
+  filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct),
+    Score = max(player.ret_final_score)
+  ) %>%
+  arrange(desc(ret_correct)),
+  aes(x = ret_tried,
+      y = Score,
+    )
+) +
+  labs(  
+  title = "Real Effort Task",
+  x = "Number of Tried Typing Tasks" 
+) +
+  geom_point()
+
+
+```
+
+
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
+df = VCM %>%
+  select(
+    Round = subsession.round_number,
+    Group_Exchange = player.group_exchange, 
+    Player = participant.code,
+    everything()
+  ) %>%
+  filter(
+    !is.na(Group_Exchange)
+  )
+
+df = left_join(
+  df, 
+  stage %>% dplyr::select(
+    Player = participant.code, player.role
+  ),
+  by = "Player"
+)
+
+ggplot(
+  df, 
+  aes(
+    x = Group_Exchange / 100, 
+    group = Player
+  )
+) +
+  stat_ecdf(alpha = .4, size = 1.2) +
+  xlim(0,.5) +
+  theme_light() +
+  labs(
+    y = "Cumulative Probability",
+    x = "Group Exchange Contribution, limit [0.05,0.5]",
+    title = "ECDF of Player Group Exchange, Over All Rounds"
+  ) +
+  theme(legend.position="none")
+
+ggplot(
+  df %>%
+    group_by(Player) %>%
+    summarise(
+      GE_cont = mean(Group_Exchange),
+      Treatment = unique(Treatment)
+    ), 
+  aes(
+    x = GE_cont / 100,
+    gropu = Treatment, color=Treatment, fill=Treatment
+  )
+) +
+  geom_density(alpha = .5) +
+  # xlim(0,.5) +
+  theme_light()  +
+  labs(
+    y = "Density",
+    x = "Group Exchange Contribution, limit [0.05,0.5]",
+    title = "Distribution of Group Exchange Contributions"
+  )
+
+ggplot(
+  df, 
+  aes(
+    x = participant._round_number,
+    y = player.group_exchange_percent,
+    group = Player
+  )
+) + 
+  geom_line()
+
+
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+# First dot graph
+
+
+df = VCM %>%
+  select(
+    Round = subsession.round_number,
+    Group_Exchange = player.group_exchange, 
+    Player = participant.code,
+    everything()
+  ) %>%
+  filter(
+    !is.na(Group_Exchange)
+  ) %>%
+  group_by(Player) %>%
+  summarise(
+    Group_Exchange = mean(player.group_exchange_percent)
+  )
+
+df = left_join(
+  stage, df,
+  by = c("participant.code" = "Player")
+) %>%
+  select(
+    participant.id_in_session:player.vcm_ge_percent,
+    Group_Exchange,
+    everything()
+  )
+
+# clean up naming of groups in paste(session.code,group.id_in_subsession)
+df = df %>%
+  mutate(
+    Session = as.factor(session.code),
+    Session = as.numeric(Session),
+    ID = paste("S",Session,"G",group.id_in_subsession, sep="")
+  )
+  
+
+ggplot(
+  data = df,
+  aes(
+    x = ID, 
+    y = Group_Exchange,
+    color = player.role
+      )
+) +
+  geom_point(
+    size = 10, alpha = .5
+      ) +
+  ylim(0,.6) +
+  xlab("Pair") +
+  ylab("Group Exchange Contribution") + 
+  labs(title = "Average Group Exchange from VCM") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_color_discrete(name="Role of Player",
+                       breaks=c("A", "F"),
+                       labels=c("Activist", "Firm")) +
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme_bw(base_size = 11, base_family = "")
+  
+  
+ggplot(
+  data = df,
+  aes(
+    x = ID, 
+    y = player.vcm_score,
+    color = player.role
+      )
+) +
+  geom_point(
+    size = 10, alpha = .5
+      ) +
+  xlab("Pair") +
+  ylab("Payoff From VCM Round") + 
+  labs(title = "VCM Round Payoffs for Activists and Firms") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_color_discrete(name="Role of Player",
+                       breaks=c("A", "F"),
+                       labels=c("Activist", "Firm")) +
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme_bw(base_size = 11, base_family = "")
+
+
+
+ggplot(
+  data = df,
+  aes(
+    x = ID, 
+    y = player.vcm_score,
+    color = player.role,
+    axis(1, labels = FALSE)
+      )
+) +
+  geom_point(
+    size = 10, alpha = .5
+      ) +
+  xlab("Pair") +
+  ylab("Stage Game Base Points") + 
+  labs(title = "Base Points for Activists and Firms",
+  subtitle = "Score from A1 and A3 Nodes, i.e. with no change to GE") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_color_discrete(name="Role of Player",
+                       breaks=c("A", "F"),
+                       labels=c("Activist", "Firm")) +
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme_bw(base_size = 11, base_family = "")
+
+ggplot(
+  data = df,
+  aes(
+    x = ID, 
+    y = player.postStage_round_points,
+    color = player.role
+      )
+) +
+  geom_point(
+    size = 10, alpha = .5
+      ) +
+  xlab("Pair") +
+  ylab("Payoff from Stage Game") + 
+  labs(title = "Stage Game Payoffs for Activists and Firms") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_color_discrete(name="Role of Player",
+                       breaks=c("A", "F"),
+                       labels=c("Activist", "Firm")) +
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme_bw(base_size = 11, base_family = "")
+  
+
+
+```
+
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=4.5}
+
+
+df = stage %>%
+  distinct(
+    group.id_in_subsession, player.terminal_choice
+  )  %>%
+  mutate(player.terminal_choice = ifelse(player.terminal_choice %in% c("N1","N2"), "Nature", player.terminal_choice)) %>% 
+filter(!is.na(player.terminal_choice))%>%
+  group_by(player.terminal_choice) %>%
+  summarise(
+    value = n()
+  )
+
+
+df$player.terminal_choice = factor(
+  df$player.terminal_choice,
+  levels = c("A1","F1","A3","Nature")
+)
+
+zero_ob_nodes =  levels(df$player.terminal_choice)[!(levels(df$player.terminal_choice) %in% df$player.terminal_choice)]
+  
+df = bind_rows(
+  df,
+  data.frame(
+    player.terminal_choice = factor(
+      zero_ob_nodes,
+      levels = c("A1","F1","A3","Nature")
+    ),
+    value = rep(0,length(zero_ob_nodes))
+  )
+)
+
+
+
+ggplot(
+  df, 
+  aes(
+    x = (player.terminal_choice),
+    y = value
+  )
+) +
+  scale_x_discrete(drop = FALSE) + 
+  geom_bar(colour = "black",position = "dodge",stat = "identity") +
+  geom_text(aes(label = value), position = position_dodge(width = .8), vjust = -0.5) +
+  ylim(0,max(df$value) + 1) +
+  labs(
+    x = "Terminal Node",
+    y = "Count", 
+    title = "Frequency of Terminal Node Choice"
+  ) +
+  theme_light(  ) +
+  theme(
+        plot.title = element_text(hjust = 0.5)
+  )
+
+
+
+```
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=5.5}
+
+df = stage %>%
+  select(
+    group.id_in_subsession,
+    player.terminal_choice,
+    contains("_stage"),
+    contains("Nature")
+  )
+df = data.frame(
+  Ss_data = c(
+    df$player.A_stage1,
+    df$player.F_stage2,
+    df$player.A_stage3,
+    df$player.Nature[1:(length(df$player.Nature)/2)]
+  )
+) %>%
+  filter(
+    !is.na(Ss_data)
+  ) %>%
+  group_by(Ss_data) %>%
+  summarise(
+    n = n()
+  ) %>%
+  mutate(
+    Node = "N1\nN2",
+    Node = ifelse(
+      test = Ss_data %in% c("A1","A2"),
+      yes = "A1\nA2",
+      no = Node
+    ),
+    Node = ifelse(
+      test = Ss_data %in% c("F1","F2"),
+      yes = "F1\nF2",
+      no = Node
+    ),
+    Node = ifelse(
+      test = Ss_data %in% c("A3","A4"),
+      yes = "A3\nA4",
+      no = Node
+    ),
+    Direction = ifelse(
+      test = Ss_data %in% c("A1","A3", "F1","N1"),
+      yes = "↑",
+      no = "↓"
+    )
+  )
+
+df$Node = factor(
+  df$Node, 
+  levels =  c("A1\nA2","F1\nF2","A3\nA4", "N1\nN2")
+)
+
+ggplot(
+  df, 
+  aes(
+    x = Node,
+    y = n,
+    group = Direction,
+    fill = Direction,
+    colour = Direction
+  )
+) +
+  scale_x_discrete(drop = FALSE) + 
+  geom_bar(position = "stack",stat = "identity") +
+  # geom_text(aes(label = value), position = position_dodge(width = .8), vjust = -0.5) +
+  # ylim(0,max(df$value) + 1) +
+  labs(
+    x = "Node",
+    y = "Count", 
+    title = "Frequency of  Node Choice"
+  ) +
+  theme_light(  ) +
+  theme(
+        plot.title = element_text(hjust = 0.5)
+  )
+
+
+
+```
+
+
+```{r, echo = F, message = F}
+
+
+df = ret %>%
+  group_by(participant.code) %>%
+  filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct* 100) %>% round(0) %>% paste("%", sep="") ,
+    ret_score = max(player.ret_final_score)
+  ) %>%
+  arrange(desc(ret_correct))
+
+df = left_join(
+  df, 
+  data.frame(
+    participant.code = VCM$participant.code,
+    PublicGood = VCM %>%
+      select(contains("Group_Exchange_Percent")) %>%
+      apply(1,mean)
+  ),
+  by = "participant.code"
+) %>%
+  select(-1) %>%
+  mutate(
+    PublicGood = (PublicGood * 100) %>% round(0) %>%paste("%", sep="")
+  )
+  
+
+kable(
+  format = "markdown", 
+  col.names = c("RET<br>Tried", "RET<br>Correct", "Rate", "Score","Public Good Contribution"),
+  align='c',
+  df
+)
+```
+
+
+```{r, echo=FALSE}
+
+#Histogram of group exchange
+
+VCM$meangroupexchange <- (VCM$Group_Exchange_Percent_r1 + VCM$Group_Exchange_Percent_r2 + VCM$Group_Exchange_Percent_r3 + VCM$Group_Exchange_Percent_r4 + VCM$Group_Exchange_Percent_r5 + VCM$Group_Exchange_Percent_r6 + VCM$Group_Exchange_Percent_r7 + VCM$Group_Exchange_Percent_r8 + VCM$Group_Exchange_Percent_r9 + VCM$Group_Exchange_Percent_r10)/10
+  
+# VCM_table1 <- table(VCM$meangroupexchange)
+# VCM_table1  
+
+
+
+
+hist(stage$vcm_mean_ge_percent,
+    col="orange",
+    main = "Frequency of Group Exchange Contribution",
+    xlab="Mean Contribution to Group Exchange",
+    border = "blue")  
+```
+
+
+#Box plot of terminal nodes
+
+```{r, echo = F, eval = F, message=FALSE, fig.height=1.5, fig.width=2.5}
+
+df = VCM %>%
+  mutate(
+    Player = as.factor(row_number())
+  ) %>%
+  select(
+    participant.code,
+    Player, 
+    contains("group_exchange_percent")
+  ) %>%
+  group_by(participant.code) %>%
+  summarize(
+    GE_mean = mean(player.group_exchange_percent)
+  )
+
+df = left_join(
+  df, stage,
+  by = "participant.code"
+) %>%
+  select(GE_mean, player.terminal_choice, group.id_in_subsession, session.code) %>%
+  group_by(group.id_in_subsession, session.code) %>%
+  summarise(
+    terminal_node = unique(player.terminal_choice),
+    GE_diff = abs(diff(GE_mean)) %>% round(2)
+  ) %>%
+  select(session.code, group.id_in_subsession, GE_diff, terminal_node) %>%
+  mutate(terminal_node=ifelse(terminal_node %in% c("N1","N2"),"Nature",terminal_node)) %>%
+  arrange(-GE_diff, desc(terminal_node))
+
+kable(df,
+      align = 'c')
+```  
+      
+    
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+#continues with df above
+
+ggplot(
+  df, 
+  aes(x = terminal_node, y = GE_diff)
+) +
+  geom_boxplot() +
+  theme_light() +
+  labs(
+    x = "Terminal Node",
+    y = "Difference Between\nGroup Exchange Contributions",
+    title = "Boxplot - Med & 1st/3rd Quartiles"
+  )
+
+
+# function for computing mean, DS, max and min values
+min.mean.sd.max <- function(x) {
+  r <- c(min(x), mean(x) - sd(x), mean(x), mean(x) + sd(x), max(x))
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+
+# ggplot code
+p1 <- ggplot(
+  data = df, 
+  aes(
+    y = GE_diff, 
+    x = factor(terminal_node)) 
+)
+p1 <- p1 + 
+  stat_summary(fun.data = min.mean.sd.max, geom = "boxplot", alpha = .5) + 
+  geom_jitter(position=position_jitter(width=.1), size=3, alpha = .2) + 
+  labs(
+    title = "Boxplot with median, 95%CI, min. & max.",
+    x = "Terminal Node",
+    y = "Difference Between\nGroup Exchange Contributions"  
+  ) +
+  theme_light()
+p1
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

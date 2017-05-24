@@ -1,0 +1,266 @@
+Csr 3 Staget Warmglow: Documentation
+************************************
+
+Accessed: 2017-03-26
+
+
+CSR Experiment
+This experiment ...
+Designed by Chetan Dave and Alicja Reuben.
+First implementation by Curtis Kephart (curtiskephart@gmail.com) 2016.11
+
+
+Participant
+    id_in_session
+        type
+            positive integer
+        doc
+    code
+        type
+            text
+        doc
+            Randomly generated unique identifier for the participant. If you would like to merge this dataset with those from another subsession in the same session, you should join on this field, which will be the same across subsessions.
+    label
+        type
+            text
+        doc
+            Label assigned by the experimenter. Can be assigned by passing a GET param called 'participant_label' to the participant's start URL
+    _is_bot
+        type
+            NullBooleanField
+        doc
+        choices
+            True: Yes
+            False: No
+    _index_in_pages
+        type
+            positive integer
+        doc
+    _max_page_index
+        type
+            positive integer
+        doc
+    _current_app_name
+        type
+            text
+        doc
+    _round_number
+        type
+            positive integer
+        doc
+    _current_page_name
+        type
+            text
+        doc
+    ip_address
+        type
+            GenericIPAddressField
+        doc
+    time_started
+        type
+            DateTimeField
+        doc
+    exclude_from_data_analysis
+        type
+            NullBooleanField
+        doc
+            if set to 1, the experimenter indicated that this participant's data points should be excluded from the data analysis (e.g. a problem took place during the experiment)
+        choices
+            True: Yes
+            False: No
+    visited
+        type
+            NullBooleanField
+        doc
+            Whether this user's start URL was opened
+        choices
+            True: Yes
+            False: No
+    mturk_worker_id
+        type
+            text
+        doc
+    mturk_assignment_id
+        type
+            text
+        doc
+Player
+    id_in_group
+        type
+            positive integer
+        doc
+            Index starting from 1. In multiplayer games, indicates whether this is player 1, player 2, etc.
+    player_role
+        type
+            text
+        doc
+            player role, A or F
+    quiz_01
+        type
+            positive integer
+        doc
+            quiz answer
+    quiz_02
+        type
+            positive integer
+        doc
+            quiz answer
+    ret_score
+        type
+            integer
+        doc
+            player's real effort task score - correct number of RETs mapped to a number.
+    vcm_score
+        type
+            decimal
+        doc
+            score player received in vcm round.
+    vcm_ge_percent
+        type
+            decimal
+        doc
+            player's average group exchange contribution in vcm rounds
+    op_ret_scores
+        type
+            text
+        doc
+            this subjects opposing player ret scores from task 1.
+    op_ge_overallavg
+        type
+            text
+        doc
+            this subjects opposing player overall average group contribution from vcm.
+    round_base_points
+        type
+            decimal
+        doc
+            player's base score. if no adjustments are made to own or counterpart GE contributions, player will earn this
+    round_payoff
+        type
+            decimal
+        doc
+            this player's earnings this round
+    A_stage1
+        type
+            text
+        doc
+            Player A decision between A1 and A2, Stage 1
+        choices
+            A1: A1
+            A2: A2
+    F_stage2
+        type
+            text
+        doc
+            Player F decision between F1 and F2, Stage 2
+        choices
+            F1: F1
+            F2: F2
+    A_stage3
+        type
+            text
+        doc
+            Player A decision between A3 and A4, Stage 3
+        choices
+            A3: A3
+            A4: A4
+    Nature
+        type
+            text
+        doc
+            'Should nature move, this is nature's move
+    terminal_choice
+        type
+            text
+        doc
+            'the terminal node reached by A and F
+    postStage_self_individual_exchange
+        type
+            decimal
+        doc
+            "player's individual exchange contribution after stage game"
+    postStage_self_ge
+        type
+            decimal
+        doc
+            "player's group exchange contribution after stage game"
+    postStage_op_individual_exchange
+        type
+            text
+        doc
+            "player's three other countryparty player's individual after stage game"
+    postStage_op_group_exchange
+        type
+            text
+        doc
+            "player's three other countryparty player's group exchange after stage game"
+    postStage_round_points
+        type
+            decimal
+        doc
+            "player's final score from stage game"
+    payoff
+        type
+            decimal
+        doc
+            The payoff the player made in this subsession
+Group
+    id_in_subsession
+        type
+            positive integer
+        doc
+Subsession
+    round_number
+        type
+            positive integer
+        doc
+            If this subsession is repeated (i.e. has multiple rounds), this
+            field stores the position (index) of this subsession, among subsessions
+            in the same app.
+            For example, if a session consists of the subsessions:
+            [app1, app2, app1, app1, app3]
+            Then the round numbers of these subsessions would be:
+            [1, 1, 2, 3, 1]
+Session
+    code
+        type
+            text
+        doc
+            Randomly generated unique identifier for the session.
+    label
+        type
+            text
+        doc
+    experimenter_name
+        type
+            text
+        doc
+    time_scheduled
+        type
+            DateTimeField
+        doc
+            The time at which the session is scheduled
+    time_started
+        type
+            DateTimeField
+        doc
+            The time at which the experimenter started the session
+    mturk_HITId
+        type
+            text
+        doc
+    mturk_HITGroupId
+        type
+            text
+        doc
+    comment
+        type
+            text
+        doc
+    is_demo
+        type
+            NullBooleanField
+        doc
+        choices
+            True: Yes
+            False: No

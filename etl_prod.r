@@ -19,7 +19,8 @@ stage = bind_rows(
 stage = stage %>%
   distinct(participant.code, session.code, subsession.round_number, .keep_all = TRUE) %>%
   filter(session.code %in% c('2huaehm1', 'wsvf3qiy', 'wheg36z2')) %>%
-  filter(subsession.round_number <11)
+  filter(subsession.round_number <11) %>%
+  ungroup()
 
 # 2huaehm1 first session 0.3 mpcr
 # wsvf3qiy second session 0.75 mpcr
@@ -47,15 +48,13 @@ ret = bind_rows(
 ret = ret %>%
   dplyr::filter(session.code %in% unique(stage$session.code)) %>%
   dplyr::filter(!is.na(player.user_text)) %>%
-  distinct(participant.code, session.code, subsession.round_number, .keep_all = TRUE)
+  distinct(participant.code, session.code, subsession.round_number, .keep_all = TRUE) %>%
+  ungroup()
 
 write.csv(
   ret, 
   "/home/cmk11/projects/CSR_Analysis/data/production_RET.csv")
 
-write_dta(
-  ret, 
-  "/home/cmk11/projects/CSR_Analysis/data/productionData_RET_STATA.dta")
 
 
 
@@ -76,7 +75,8 @@ VCM = bind_rows(
 )%>%
   dplyr::filter( !is.na(player.group_exchange)) %>%
   dplyr::filter(session.code %in% unique(stage$session.code)) %>%
-  dplyr::distinct(.keep_all = T)
+  dplyr::distinct(.keep_all = T) %>%
+  ungroup()
 
 
 temp = VCM %>%
@@ -103,24 +103,48 @@ write.csv(
   stage, 
   "/home/cmk11/projects/CSR_Analysis/data/productionDataStage.csv")
 
+stage_dta = stage 
+names(stage_dta) = gsub('\\.', '_',names(stage_dta))
+stage_dta = stage_dta%>%
+  select(
+    -participant_exclude_from_data_analysis,
+    -player_postStage_self_individual_exchange,
+    -player_postStage_op_individual_exchange,
+    -player_postStage_op_group_exchange
+    )
+
 write_dta(
-  stage, 
+  stage_dta, 
   "/home/cmk11/projects/CSR_Analysis/data/productionDataStageSTATA.dta")
 
 write.csv(
   VCM, 
   "/home/cmk11/projects/CSR_Analysis/data/productionDataVCM.csv")
 
+VCM_dta = VCM
+names(VCM_dta) = gsub('\\.', '_',names(VCM_dta))
+VCM_dta = VCM_dta %>%
+  select(
+    -player_total_op_individual_exchange,
+    -participant_exclude_from_data_analysis
+  )
 write_dta(
-  VCM, 
+  VCM_dta, 
   "/home/cmk11/projects/CSR_Analysis/data/productionData_VCM_STATA.dta")
 
 write.csv(
   ret, 
   "/home/cmk11/projects/CSR_Analysis/data/production_RET.csv")
 
+
+ret_dta = ret 
+names(ret_dta) = gsub('\\.', '_',names(ret_dta))
+ret_dta = ret_dta %>%
+  select(
+    -participant_exclude_from_data_analysis
+  )
 write_dta(
-  ret, 
+  ret_dta, 
   "/home/cmk11/projects/CSR_Analysis/data/productionData_RET_STATA.dta")
 
 

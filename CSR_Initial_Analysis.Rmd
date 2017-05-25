@@ -31,7 +31,8 @@ df = ret %>%
     ret_score = max(as.numeric(player.ret_final_score))
   ) %>%
   select(-1) %>%
-  arrange(desc(ret_correct))
+  arrange(desc(ret_correct)) %>%
+  ungroup()
 
 kable(
   format = "markdown", 
@@ -131,6 +132,150 @@ ggplot(
 ```
 
 
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4}
+
+ggplot(
+  ret %>%
+  group_by(participant.code) %>%
+  filter(!is.na(player.is_correct)) %>%
+  mutate(player.is_correct = as.numeric(player.is_correct)) %>%
+  summarise(
+    ret_tried = length(player.is_correct),
+    ret_correct = sum(player.is_correct),
+    ret_correctRate = mean(player.is_correct),
+    Score = max(as.numeric(player.ret_final_score))
+  ) %>%
+  arrange(desc(ret_correct)),
+  aes(x = Score
+    )
+) +
+  labs(  
+  title = "Real Effort Task Score",
+  x = "Score", 
+  y = "Count"
+) +
+  geom_histogram() +
+  theme_bw()
+
+
+```
+
+
+
+
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
+df = VCM %>%
+    select(
+    Round = subsession.round_number,
+    Group_Exchange = player.group_exchange_percent, 
+    Individual_Exchange = 1 - Group_Exchange,
+    Player = participant.code,
+    MPCR = player.mpcr,
+    everything()
+  ) %>%
+  filter(
+    !is.na(Group_Exchange)
+  )
+  
+ggplot(
+  df, 
+  aes(
+    x = Group_Exchange
+  )
+) + geom_histogram() +
+  labs(
+    x = "Public Good Contribution Percent",
+    y = "Count", 
+    title = "Distribution of Public Good Contributions"
+  ) 
+
+```
+
+
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
+
+df = VCM %>%
+  select(
+    Round = subsession.round_number,
+    Player = participant.code,
+    MPCR = player.mpcr,
+    `Group Exchange` = player.group_exchange_percent
+  ) %>% 
+  mutate(
+    `Individual_Exchange` = 1 - `Group Exchange`,
+    MPCR = paste("MPCR:",MPCR)
+  ) %>%
+  filter(
+    !is.na(`Group Exchange`)
+  )
+df =   tidyr::gather(
+  df, 
+  Type, Contribution,
+  `Group Exchange`:`Individual_Exchange`)
+
+ggplot(
+  df, 
+  aes(
+    x = Contribution
+  )
+) + geom_histogram() +
+  labs(
+    x = "Public Good Contribution Percent",
+    y = "Count", 
+    title = "Distribution of Public Good Contributions"
+  ) +
+  facet_grid(Type~MPCR ) +
+  theme_bw()
+
+```
+
+
+
+```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
+
+df = VCM %>%
+  select(
+    Round = subsession.round_number,
+    Player = participant.code,
+    MPCR = player.mpcr,
+    `Group Exchange` = player.group_exchange_percent
+  ) %>% 
+  mutate(
+    `Individual_Exchange` = 1 - `Group Exchange`,
+    MPCR = paste("MPCR:",MPCR)
+  ) %>%
+  filter(
+    !is.na(`Group Exchange`)
+  )
+df =   tidyr::gather(
+  df, 
+  Type, Contribution,
+  `Group Exchange`:`Individual_Exchange`)
+
+ggplot(
+  df %>% filter(
+    Type == 'Group Exchange'
+  ), 
+  aes(
+    x = factor(Round),
+    y = Contribution
+    
+  )
+) + geom_boxplot() +
+  labs(
+    x = "Round",
+    y = "Public Good Contribution, Percent", 
+    title = " "
+  ) +
+  facet_grid(MPCR~.) +
+  theme_bw()
+
+```
+
+
 
 
 
@@ -197,7 +342,6 @@ ggplot(
 
 
 ```
-
 
 
 

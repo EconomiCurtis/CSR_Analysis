@@ -1,9 +1,38 @@
 ---
 title: "CSR Initial Analysis"
-output: html_notebook
+output:
+  pdf_document:
+    fig_height: 4
+    fig_width: 6.6
+  html_notebook:
+    fig_height: 4
+    fig_width: 10.6
+  html_document:
+    fig_height: 4
+    fig_width: 10.6
 ---
 
-```{r, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE}
+```{r, echo=F, results='asis'}
+
+cat(
+  " Compiled by Curtis Kephart, curtis.kephart@nyu.edu, ",
+  " with [R Markdown](http://rmarkdown.rstudio.com) Notebook. ",
+  sep = ""
+)
+```
+
+```{r, echo=F, results='asis'}
+
+cat(
+  as.character(Sys.time())," GMT, ",
+  Sys.timezone(location = TRUE),
+  sep = ""
+)
+```
+
+
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 #' for workign with rmarkdown,  
 #' see https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf 
 
@@ -15,10 +44,13 @@ library(dplyr)
 ```
 
 
+----
+
+## Real Effort Task
 
 Below, a table of each subject's RET preformance. 
 
-```{r, echo = FALSE, message=FALSE}
+```{r, echo = FALSE,eval = FALSE, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 
 df = ret %>%
   group_by(participant.code)%>%
@@ -30,13 +62,12 @@ df = ret %>%
     ret_correctRate = mean(player.is_correct* 100) %>% round(0) %>% paste("%", sep="") ,
     ret_score = max(as.numeric(player.ret_final_score))
   ) %>%
-  select(-1) %>%
   arrange(desc(ret_correct)) %>%
   ungroup()
 
 kable(
   format = "markdown", 
-  col.names = c("RET<br>Tried", "RET<br>Correct", "Rate", "Score"),
+  col.names = c("Player ID","RET<br>Tried", "RET<br>Correct", "Rate", "Score"),
   align='c',
   df
 )
@@ -46,7 +77,7 @@ kable(
 
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4}
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 
 ggplot(
   ret %>%
@@ -62,7 +93,18 @@ ggplot(
   aes(x = ret_tried,
       y = ret_correct)
 ) +
-  geom_point()
+  geom_point() + 
+  theme_minimal() + 
+  labs(
+    x = "Tasks Attempted",
+    y = "Tasks Succeeded"
+  )
+
+```
+
+---- 
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 
 ggplot(
   ret %>%
@@ -87,8 +129,12 @@ ggplot(
     x = "Number of Correct Typing Tasks",
     y = "Score"
   ) +
-  theme_light()
+  theme_minimal()
+```
 
+---- 
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 ggplot(
   ret %>%
   group_by(participant.code) %>%
@@ -104,8 +150,17 @@ ggplot(
   aes(x = ret_correct,
       y = ret_correctRate)
 ) +
-  geom_point()
+  geom_point() +
+    labs(
+    x = "Number of Correct Typing Tasks",
+    y = "Correct Task Rate"
+  ) +
+  theme_minimal()
+```
 
+---- 
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 ggplot(
   ret %>%
   group_by(participant.code) %>%
@@ -126,13 +181,15 @@ ggplot(
   title = "Real Effort Task",
   x = "Number of Tried Typing Tasks" 
 ) +
-  geom_point()
+  geom_point() +
+  theme_minimal()
 
 
 ```
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4}
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
+
 
 ggplot(
   ret %>%
@@ -150,7 +207,7 @@ ggplot(
     )
 ) +
   labs(  
-  title = "Real Effort Task Score",
+  title = "Distribution of Real Effort Task Scores",
   x = "Score", 
   y = "Count"
 ) +
@@ -160,21 +217,26 @@ ggplot(
 
 ```
 
+## Public Good Game
 
 
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
 
 df = VCM %>%
-    select(
-    Round = subsession.round_number,
+  mutate( 
     Group_Exchange = player.group_exchange_percent, 
-    Individual_Exchange = 1 - Group_Exchange,
+    Individual_Exchange = 1 - Group_Exchange
+  ) %>%
+  select(
+    Round = subsession.round_number,
+    Group_Exchange, 
+    Individual_Exchange,
     Player = participant.code,
     MPCR = player.mpcr,
     everything()
   ) %>%
-  filter(
+  dplyr::filter(
     !is.na(Group_Exchange)
   )
   
@@ -188,12 +250,14 @@ ggplot(
     x = "Public Good Contribution Percent",
     y = "Count", 
     title = "Distribution of Public Good Contributions"
-  ) 
+  ) +
+  theme_minimal()
 
 ```
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE}
+
 
 
 df = VCM %>%
@@ -233,7 +297,8 @@ ggplot(
 
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE}
+
 
 
 df = VCM %>%
@@ -268,18 +333,101 @@ ggplot(
   labs(
     x = "Round",
     y = "Public Good Contribution, Percent", 
-    title = " "
+    title = "Public Good Contribution Rates Over Session Rounds",
+    subtitle = "quartile boxplot, ten rounds per session"
   ) +
   facet_grid(MPCR~.) +
   theme_bw()
 
 ```
 
+Subjects played ten VCM rounds. As rounds progressed, rates of public goods contribution declined. 
 
 
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=6.5}
+
+ggplot(
+  df %>% filter(
+    Type == 'Group Exchange'
+  ), 
+  aes(
+    x = Round,
+    y = Contribution,
+    group = MPCR, color = MPCR
+    
+  )
+) + geom_smooth(span = 0.75) +
+  labs(
+    x = "Round",
+    y = "Public Good Contribution, Percent", 
+    title = " ",
+    subtitle = "Simple LOESS Smoother, span = 0.75"
+  ) +
+  theme_minimal()
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+```
+
+
+Comparing between MPCRs, the higher rates generally had approximately 10% higher public good contribution rates on average. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=6.5}
+
+df = VCM %>%
+  ungroup() %>%
+  group_by(session.code, subsession.round_number, group.id_in_subsession) %>%
+  summarise(
+    Round = unique(subsession.round_number),
+    Group_Exchange_Total = sum(player.group_exchange),
+    Group_Exchange_AvgPrct = mean(player.group_exchange_percent),
+    Endowment_Total = sum(player.group_exchange) + sum(player.individual_exchange),
+    MPCR = unique(player.mpcr)
+  )
+
+p1= ggplot(
+  df, 
+  aes(
+    x = Round,
+    y = Group_Exchange_Total,
+    group = factor(MPCR), color = factor(MPCR)
+    
+  )
+) 
+
+# p1 + geom_smooth() +
+#   labs(
+#     x = "Round",
+#     y = "Public Good Contribution, Total", 
+#     title = " ",
+#     color = "MPCR"
+#   ) +
+#   theme_bw()
+
+ggplot(
+  df, 
+  aes(
+    x = Round,
+    y = Group_Exchange_Total,
+    group = Round, color = factor(MPCR)
+    
+  )
+)  + geom_boxplot() +
+  labs(
+    x = "Round",
+    y = "Public Good Contribution, Total", 
+    title = " ",
+    substitle = "Quartile boxplot of total public good contribution",
+    color = "MPCR"
+  ) +
+  theme_light() +
+  facet_grid(MPCR~.)
+
+
+```
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
 
 df = VCM %>%
   select(
@@ -309,7 +457,7 @@ ggplot(
 ) +
   stat_ecdf(alpha = .4, size = 1.2) +
   xlim(0,1.0) +
-  theme_light() +
+  theme_minimal() +
   labs(
     y = "Cumulative Probability",
     x = "Group Exchange Contribution, limit [0.05,0.95]",
@@ -317,12 +465,17 @@ ggplot(
   ) +
   theme(legend.position="none")
 
+```
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
 ggplot(
   df %>%
     group_by(Player) %>%
     summarise(
       GE_cont = mean(Group_Exchange),
-      Treatment = unique(player.mpcr)
+      Treatment = factor(unique(player.mpcr))
     ), 
   aes(
     x = GE_cont,
@@ -331,11 +484,12 @@ ggplot(
 ) +
   geom_density(alpha = .5) +
   # xlim(0,100) +
-  theme_light()  +
+  theme_minimal()  +
   labs(
     y = "Density",
     x = "Group Exchange Contribution, limit [0.05,0.95]",
-    title = "Distribution of Group Exchange Contributions"
+    title = "Distribution of Group Exchange Contributions",
+    fill = "MPCR", color = "MPCR"
   )
 
 
@@ -343,11 +497,53 @@ ggplot(
 
 ```
 
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
+df = stage %>%
+  filter(subsession.round_number == 1) %>%
+  select(
+    Group_Exchange_Percent = player.vcm_ge_percent,
+    Role = player.player_role)
+
+ggplot(
+  df, 
+  aes(
+    x = Group_Exchange_Percent  
+    )
+) + 
+  geom_density(alpha = 0.9, fill = 0.5, color = "black"
+               ) + 
+  labs(
+    x = "Group Exchange Contribution as Percent of Endowment",
+    title = "Distribution of Public Good Contributions,\nby Percent of Endowment"
+  )
+
+```
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
+ggplot(
+  df, 
+  aes(
+    x = Group_Exchange_Percent ,
+    color = Role, fill = Role
+  )
+) + 
+  geom_density(alpha = 0.2)+  
+  labs(
+    x = "Group Exchange Contribution as Percent of Endowment",
+    title = "Distribution of Public Good Contributions,\nby Percent of Endowment, by Role"
+  ) +
+  theme_minimal()
 
 
 
+```
 
-```{r, echo=FALSE, message=FALSE}
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=6.5}
 # First dot graph
 
 
@@ -409,10 +605,15 @@ ggplot(
                        breaks=c("A", "F"),
                        labels=c("Activist", "Firm")) +
   theme(legend.title = element_text(size=12, face="bold")) +
-  theme_bw(base_size = 11, base_family = "") +
+  theme_minimal(base_size = 11, base_family = "") +
   theme(axis.text.x = element_text(angle = 45))
   
   
+```
+
+
+```{r, echo = FALSE, eval= FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+
 ggplot(
   data = df,
   aes(
@@ -485,11 +686,13 @@ ggplot(
 ```
 
 
+## Stage Game
 
 
+Below, reports the overall percent each terminal node choice was selected by stage game groups. 
 
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=4.5}
+```{r, echo=FALSE, fig.height=3.5, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE}
 
 
 df = stage %>%
@@ -523,7 +726,16 @@ df = bind_rows(
 )
 
 
-df2 = df %>% group_by(player.terminal_choice) %>% summarise(value = sum(value))
+df2 = df %>% group_by(player.terminal_choice) %>% 
+  summarise(
+    value = sum(value)
+  ) %>%
+  ungroup() %>%
+  mutate( 
+    Total = sum(value), 
+    value_percent = (100 * value / Total) %>% round(1) %>% as.character(),
+    value_percent = paste(value_percent, "%", sep = "")
+  )
 ggplot(
   df2, 
   aes(
@@ -533,14 +745,14 @@ ggplot(
 ) +
   scale_x_discrete(drop = FALSE) + 
   geom_bar(colour = "black",position = "dodge",stat = "identity") +
-  geom_text(aes(label = value), position = position_dodge(width = .8), vjust = -0.5) +
+  geom_text(aes(label = value_percent), position = position_dodge(width = .8), vjust = -0.5) +
   ylim(0,max(df2$value) * 1.07) +
   labs(
     x = "Terminal Node",
-    y = "Count", 
-    title = "Frequency of Terminal Node Choice"
+    y = "Percent", 
+    title = "Terminal Node Choice, Percent Frequency"
   ) +
-  theme_light(  ) +
+  theme_minimal(  ) +
   theme(
         plot.title = element_text(hjust = 0.5)
   )
@@ -548,7 +760,13 @@ ggplot(
 
 ```
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=4.5}
+
+Below, reports how terminal node choices evolved as the session progressed over each of ten rounds. 
+
+Groups in the stage game were fixed. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=6.5, warning=FALSE, error=FALSE}
 #requires df created above
 ggplot(
   df,
@@ -559,18 +777,21 @@ ggplot(
     fill = player.terminal_choice
   )
 ) + 
-  geom_area(position="fill") +
+  geom_area(position="fill", alpha = 0.66) +
     labs(
     x = "Round",
     y = "Percent", 
-    title = "Frequency of Terminal Node Choice Over Rounds"
+    title = "Frequency of Terminal Node Choice Over Rounds",
+    fill = "Terminal Node"
   ) +
-  theme_light()
+  theme_minimal()
 
 ```
 
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=6}
+Below, breaks down terminal node choice dynamics by MPCR treatment. 
+
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=6.5, warning=FALSE, error=FALSE}
 
 df = stage %>%
   # distinct(
@@ -614,20 +835,26 @@ ggplot(
     fill = player.terminal_choice
   )
 ) + 
-  geom_area(position="fill") +
+  geom_area(position="fill", alpha = 0.6) +
     labs(
     x = "Round",
     y = "Percent", 
     title = "Frequency of Terminal Node Choice Over Rounds"
   ) +
   theme_light() +
-  facet_grid(~player.mpcr)
+  facet_grid(player.mpcr~.)
 ```
 
 
+Selections were elicited via the strategy method. For example, even if A1 was selected by the role A player, Role F would still be asked what they would choose if A *had chosen A2* previously. At the end of each round, the terminal node and payoffs were revealed to both players. And the next round begins with the strategy method again.
+
+Below reports the percent of time each choice was selected at each decision. 
+
+Nature was selected by a random number generated via the experiment software, with probability of N1 = 0.75.
 
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=5.5}
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=5.5, warning=FALSE, error=FALSE}
 
 df = stage %>%
   select(
@@ -681,11 +908,20 @@ df$Node = factor(
   levels =  c("A1\nA2","F1\nF2","A3\nA4", "N1\nN2")
 )
 
+df = df %>%
+  ungroup() %>%
+  group_by(Node) %>%
+  mutate(
+    total = sum(n),
+    percent = n / total,
+    percent_char = paste(((100 * n / total) %>% round(1)), "%", sep = "")
+  )
+
 ggplot(
   df, 
   aes(
     x = Node,
-    y = n,
+    y = percent,
     group = Direction,
     fill = Direction,
     colour = Direction
@@ -697,10 +933,10 @@ ggplot(
   # ylim(0,max(df$value) + 1) +
   labs(
     x = "Node",
-    y = "Count", 
+    y = "Percent", 
     title = "Frequency of  Node Choice"
   ) +
-  theme_light(  ) +
+  theme_minimal(  ) +
   theme(
         plot.title = element_text(hjust = 0.5)
   )
@@ -710,8 +946,10 @@ ggplot(
 ```
 
 
+The plot below breaks the above plot down by MPCR treatment. 
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=5.5}
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6.5, warning=FALSE, error=FALSE}
 
 df = stage %>%
   select(
@@ -763,7 +1001,8 @@ df = data.frame(
       test = Ss_data %in% c("A1","A3", "F1","N1"),
       yes = "↑",
       no = "↓"
-    )
+    ),
+    mpcr = paste("MPCR:", mpcr)
   ) %>%
   group_by(mpcr, Node) %>%
   mutate(
@@ -795,7 +1034,7 @@ ggplot(
   # ylim(0,max(df$value) + 1) +
   labs(
     x = "Node",
-    y = "Count", 
+    y = "Percent", 
     title = "Frequency of  Node Choice"
   ) +
   theme_light(  ) +
@@ -854,57 +1093,267 @@ kable(df,
       align = 'c')
 ```  
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
-#continues with df above
 
-df$terminal_node = as.factor(df$terminal_node)
-df$Node = factor(
-  df$terminal_node, 
-  levels =  c("A1","F1","A3", "Nature")
+Below, the table shows the average rates at which each MPCR treatment groups reached each possible terminal node.
+
+These groups were composed of two-players in ten repeated rounds. We find the average number of times each group reached each possible terminal node. There were `r  (stage %>% filter(player.mpcr == 0.3) %>% summarise(n =length(unique(paste(session.code, group.id_in_subsession)))))$n` such groups  in the `MPCR = 0.3` treatment, 
+and `r  (stage %>% filter(player.mpcr == 0.75) %>% summarise(n =length(unique(paste(session.code, group.id_in_subsession)))))$n` such groups  in the `MPCR = 0.75` treatment regime. 
+
+The table is arranged to make it easy to compare terminal node rates between MPCR regimes. 
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5, error=FALSE, warning=FALSE, cache=FALSE}
+
+df = VCM %>%
+  mutate(
+    Player = as.factor(row_number())
+  ) %>%
+  dplyr::filter(!is.na(player.group_exchange_percent)) %>%
+  dplyr::select(
+    participant.code,
+    Player, 
+    contains("group_exchange_percent")
+  ) %>%
+  group_by(participant.code) %>%
+  summarize(
+    GE_mean = mean(player.group_exchange_percent, na.rm = T),
+    n = n()
+  )
+
+df = left_join(
+  df, stage,
+  by = "participant.code"
+) %>%
+  dplyr::select(GE_mean, player.terminal_choice, group.id_in_subsession, session.code,subsession.round_number, player.mpcr) %>%
+  group_by(group.id_in_subsession, session.code, subsession.round_number) %>%
+  summarise(
+    terminal_node = unique(player.terminal_choice),
+    GE_diff = abs(diff(GE_mean)) %>% round(2),
+    mpcr = unique(player.mpcr)
+  ) %>%
+  select(session.code, group.id_in_subsession, subsession.round_number, mpcr, GE_diff, terminal_node) %>%
+  mutate(terminal_node=ifelse(terminal_node %in% c("N1","N2"),"Nature",terminal_node)) %>%
+  arrange(-GE_diff,subsession.round_number, desc(terminal_node))
+
+df_tab = df %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarise(
+    mpcr = unique(mpcr), 
+    GE_diff = unique(GE_diff), 
+    A1 = sum(terminal_node == "A1") / length(terminal_node),
+    F1 = sum(terminal_node == "F1") / length(terminal_node),
+    A3 = sum(terminal_node == "A3") / length(terminal_node),
+    Nature = sum(terminal_node == "Nature") / length(terminal_node)
+  ) %>%
+  gather(terminal_node, percent, A1:Nature)
+
+df_tab = df_tab %>%
+  group_by(terminal_node, mpcr) %>%
+  summarise(
+    average = mean(percent) %>% round(3),
+    # sd = sd(percent),
+    se =  (sd(percent) / n()) %>% round(4),
+    n = n()
+  )
+df_tab$terminal_node = factor(
+  df_tab$terminal_node,
+  levels = c("A1","F1","A3","Nature")
+)
+df_tab = df_tab %>% 
+  arrange(terminal_node, mpcr) %>%
+  t()
+
+
+
+kable(
+  format = "pandoc",
+  align = 'c',
+  col.names = c('','','','','','','',''),
+  df_tab
+)
+
+# 
+# df %>%
+#   group_by(session.code, group.id_in_subsession) %>%
+#   summarise(
+#     mpcr = unique(mpcr), 
+#     GE_diff = unique(GE_diff), 
+#     A1 = sum(terminal_node == "A1") / length(terminal_node),
+#     F1 = sum(terminal_node == "F1") / length(terminal_node),
+#     A3 = sum(terminal_node == "A3") / length(terminal_node),
+#     Nature = sum(terminal_node == "Nature") / length(terminal_node)
+#   ) %>% 
+#   group_by(mpcr) %>%
+#   summarise(
+#     A1_mean = mean(A1),
+#     A1_sd = sd(A1),
+#     A1_se = A1_sd / n(),
+#     A1_n = n(),
+#     F1_mean = mean(F1),
+#     F1_sd = sd(F1),
+#     F1_se = F1_sd / n(),
+#     F1_n = n(),
+#     A3_mean = mean(A3),
+#     A3_sd = sd(A3),
+#     A3_se = A3_sd / n(),
+#     A3_n = n(),
+#     N_mean = mean(Nature),
+#     N_sd = sd(Nature),
+#     N_se = N_sd / n(),
+#     N_n = n()
+#   ) %>%
+#   t()
+
+```
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5, error=FALSE, warning=FALSE, cache=FALSE}
+
+df = VCM %>%
+  mutate(
+    Player = as.factor(row_number())
+  ) %>%
+  dplyr::filter(!is.na(player.group_exchange_percent)) %>%
+  dplyr::select(
+    participant.code,
+    Player, 
+    contains("group_exchange_percent")
+  ) %>%
+  group_by(participant.code) %>%
+  summarize(
+    GE_mean = mean(player.group_exchange_percent, na.rm = T),
+    n = n()
+  )
+
+df = left_join(
+  df, stage,
+  by = "participant.code"
+) %>%
+  dplyr::select(GE_mean, player.terminal_choice, group.id_in_subsession, session.code,subsession.round_number, player.mpcr) %>%
+  group_by(group.id_in_subsession, session.code, subsession.round_number) %>%
+  summarise(
+    terminal_node = unique(player.terminal_choice),
+    GE_diff = abs(diff(GE_mean)) %>% round(2),
+    mpcr = unique(player.mpcr)
+  ) %>%
+  select(session.code, group.id_in_subsession, subsession.round_number, mpcr, GE_diff, terminal_node) %>%
+  mutate(terminal_node=ifelse(terminal_node %in% c("N1","N2"),"Nature",terminal_node)) %>%
+  arrange(-GE_diff,subsession.round_number, desc(terminal_node))
+
+df_tab = df %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarise(
+    mpcr = unique(mpcr), 
+    GE_diff = unique(GE_diff), 
+    A1 = sum(terminal_node == "A1") / length(terminal_node),
+    F1 = sum(terminal_node == "F1") / length(terminal_node),
+    A3 = sum(terminal_node == "A3") / length(terminal_node),
+    Nature = sum(terminal_node == "Nature") / length(terminal_node)
+  ) %>%
+  gather(terminal_node, percent, A1:Nature)
+
+
+print('###############################################################################')
+cat("Do groups in MPCR 0.3 and 0.75 reach A1 at the same rates?")
+
+wilcox.test(
+  (df_tab %>%filter(mpcr==0.3 & terminal_node=="A1"))$percent,
+  (df_tab %>%filter(mpcr==0.75 & terminal_node=="A1"))$percent,
+  paired=FALSE
+)
+
+print('###############################################################################')
+print("Do groups in MPCR 0.3 and 0.75 reach F1 at the same rates?")
+
+wilcox.test(
+  (df_tab %>%filter(mpcr==0.3 & terminal_node=="F1"))$percent,
+  (df_tab %>%filter(mpcr==0.75 & terminal_node=="F1"))$percent,
+  paired=FALSE
+)
+
+print('###############################################################################')
+print("Do groups in MPCR 0.3 and 0.75 reach A3 at the same rates?")
+
+wilcox.test(
+  (df_tab %>%filter(mpcr==0.3 & terminal_node=="A3"))$percent,
+  (df_tab %>%filter(mpcr==0.75 & terminal_node=="A3"))$percent,
+  paired=FALSE
+)
+
+print('###############################################################################')
+print("Do groups in MPCR 0.3 and 0.75 reach Nature at the same rates?")
+
+wilcox.test(
+  (df_tab %>%filter(mpcr==0.3 & terminal_node=="Nature"))$percent,
+  (df_tab %>%filter(mpcr==0.75 & terminal_node=="Nature"))$percent,
+  paired=FALSE
+)
+
+print('###############################################################################')
+
+
+
+
+```
+
+
+We only see a significant difference between groups' inclination to reach terminal node A3. 
+
+
+
+
+
+
+
+
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+
+df = stage %>%
+  # distinct(
+  #   group.id_in_subsession, subsession.round_number, keep_all = TRUE
+  # )  %>%
+  mutate(player.terminal_choice = ifelse(player.terminal_choice %in% c("N1","N2"), "Nature", player.terminal_choice)) %>% 
+  filter(!is.na(player.terminal_choice)) %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(player.terminal_choice, player.mpcr) %>%
+  summarise(
+    value = n()/2
+  ) %>%
+  group_by(player.mpcr) %>%
+  mutate(
+    Total_TerminalNodes = sum(value),
+    value_percent = value / Total_TerminalNodes
+  ) %>%
+  ungroup()
+
+df$player.terminal_choice = factor(
+  df$player.terminal_choice,
+  levels = c("A1","F1","A3","Nature")
 )
 
 ggplot(
   df, 
-  aes(x = Node, y = GE_diff,fill=factor(mpcr))
-) +
-  geom_boxplot() +
-  theme_light() +
-  labs(
-    x = "Terminal Node",
-    y = "Difference Between\nGroup Exchange Contributions",
-    title = "Boxplot - Med & 1st/3rd Quartiles"
-  )
-
-
-# function for computing mean, DS, max and min values
-min.mean.sd.max <- function(x) {
-  r <- c(min(x), mean(x) - sd(x), mean(x), mean(x) + sd(x), max(x))
-  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
-  r
-}
-
-df$terminal_node = as.factor(df$terminal_node)
-df$Node = factor(
-  df$terminal_node, 
-  levels =  c("A1","F1","A3", "Nature")
-)
-# ggplot code
-p1 <- ggplot(
-  data = df, 
   aes(
-    y = GE_diff, 
-    x = Node)
-)
-p1 <- p1 + 
-  stat_summary(fun.data = min.mean.sd.max, geom = "boxplot", alpha = .5) + 
-  geom_jitter(position=position_jitter(width=.1), size=3, alpha = .2) + 
+    x = player.terminal_choice,
+    y = value_percent,
+    fill = factor(player.mpcr)
+  )
+) + 
+  geom_bar(stat="identity", position = "dodge") +
   labs(
-    title = "Boxplot with median, 95%CI, min. & max.",
-    x = "Terminal Node",
-    y = "Difference Between\nGroup Exchange Contributions"  
+    x = "MPCR",
+    y = "Percent",
+    fill = "Terminal Node",
+    title = "Terminal Node, Percent, by MPCR Treatment"
   ) +
-  theme_light()
-p1
+  theme_minimal()
 
 
 ```
@@ -971,63 +1420,128 @@ ggplot(
     y = "Percent",
     fill = "Terminal Node"
   ) +
-  theme_light()
+  theme_minimal()
 
 
 ```
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+-----
 
 
-from_subsession = 1
-to_subsession   = 10
+### Inequality Aversion 
 
-df = stage %>%
-  # distinct(
-  #   group.id_in_subsession, subsession.round_number, keep_all = TRUE
-  # )  %>%
-  mutate(player.terminal_choice = ifelse(player.terminal_choice %in% c("N1","N2"), "Nature", player.terminal_choice)) %>% 
-  filter(!is.na(player.terminal_choice)) %>%
-  filter(
-    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
-  ) %>%
-  group_by(player.terminal_choice, player.mpcr) %>%
-  summarise(
-    value = n()/2
-  ) %>%
-  group_by(player.mpcr) %>%
+Below we consider the effect of varying public good contributions on the terminal nodes selected by players in the stage game. 
+
+The stage game was played by two-players. Each player had some average public good contribution from their ten rounds of the VCM game. 
+
+In the plot below, we see the distribution of these two-player-group differences in public good contributions for each terminal node selected. A large difference implies one player contributed a lot more to the public good relative to the other, while a small difference means the two players contributued at similar rates. The plot above labeled "Average Group Exchange from VCM" shows the public good contributions of each group in the stage game. 
+
+The plot shows that F1 tended to be selected where public good contribution differences were the smallest within groups. While players tended to reach the nature node where differences in group exchange contributions were the highest. 
+
+
+```{r, echo = FALSE,  message=FALSE, fig.height=4, fig.width=5.5}
+#continues with df above
+df = VCM %>%
   mutate(
-    Total_TerminalNodes = sum(value),
-    value_percent = value / Total_TerminalNodes
+    Player = as.factor(row_number())
   ) %>%
-  ungroup()
+  dplyr::filter(!is.na(player.group_exchange_percent)) %>%
+  dplyr::select(
+    participant.code,
+    Player, 
+    contains("group_exchange_percent")
+  ) %>%
+  group_by(participant.code) %>%
+  summarize(
+    GE_mean = mean(player.group_exchange_percent, na.rm = T),
+    n = n()
+  )
 
-df$player.terminal_choice = factor(
-  df$player.terminal_choice,
-  levels = c("A1","F1","A3","Nature")
+df = left_join(
+  df, stage,
+  by = "participant.code"
+) %>%
+  dplyr::select(GE_mean, player.terminal_choice, group.id_in_subsession, session.code,subsession.round_number, player.mpcr) %>%
+  group_by(group.id_in_subsession, session.code, subsession.round_number) %>%
+  summarise(
+    terminal_node = unique(player.terminal_choice),
+    GE_diff = abs(diff(GE_mean)) %>% round(2),
+    mpcr = unique(player.mpcr)
+  ) %>%
+  select(session.code, group.id_in_subsession, subsession.round_number, mpcr, GE_diff, terminal_node) %>%
+  mutate(terminal_node=ifelse(terminal_node %in% c("N1","N2"),"Nature",terminal_node)) %>%
+  arrange(-GE_diff,subsession.round_number, desc(terminal_node))
+
+df$terminal_node = as.factor(df$terminal_node)
+df$Node = factor(
+  df$terminal_node, 
+  levels =  c("A1","F1","A3", "Nature")
 )
 
-ggplot(
-  df, 
+# ggplot(
+#   df, 
+#   aes(x = Node, y = GE_diff,fill=factor(mpcr))
+# ) +
+#   geom_boxplot() +
+#   theme_light() +
+#   labs(
+#     x = "Terminal Node",
+#     y = "Difference Between\nGroup Exchange Contributions",
+#     title = "Boxplot - Med & 1st/3rd Quartiles"
+#   )
+
+
+# function for computing mean, DS, max and min values
+min.mean.sd.max <- function(x) {
+  r <- c(min(x), mean(x) - sd(x), mean(x), mean(x) + sd(x), max(x))
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+
+df$terminal_node = as.factor(df$terminal_node)
+df$Node = factor(
+  df$terminal_node, 
+  levels =  c("A1","F1","A3", "Nature")
+)
+# ggplot code
+p1 <- ggplot(
+  data = df, 
   aes(
-    x = player.terminal_choice,
-    y = value_percent,
-    fill = factor(player.mpcr)
-  )
-) + 
-  geom_bar(stat="identity", position = "dodge") +
+    y = GE_diff, 
+    x = Node)
+)
+p1 <- p1 + 
+  stat_summary(fun.data = min.mean.sd.max, geom = "boxplot", alpha = .5) + 
+  geom_jitter(position=position_jitter(width=.3), size=3, alpha = .1) + 
   labs(
-    x = "MPCR",
-    y = "Percent",
-    fill = "Terminal Node"
+    title = "Boxplot with median, 95%CI, min. & max.",
+    x = "Terminal Node",
+    y = "Difference Between\nGroup Exchange Contributions"  
   ) +
-  theme_light()
+  theme_minimal()
+p1
 
 
 ```
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+----
+
+#### Reaching Nature
+
+
+Below is a parametric test, 
+
+$N_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{g}$
+
+- Where $N_{g}$ is the percent of the time group $g$ reached nature as their terminal node,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
 from_subsession = 1
@@ -1045,13 +1559,14 @@ df = stage %>%
     N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
     Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
     mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
     GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
   ) %>%
   ungroup()
 
 
 reg = lm(
-  Nature_percent ~ mpcr + log(GE_diff),
+  Nature_percent ~ MPCR_0.30 + log(GE_diff),
   df
 )
 summary(reg)
@@ -1059,7 +1574,16 @@ summary(reg)
 ```
 
 
-```{r, echo = FALSE, eval = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+Below is another parametric test, this time using group-round level observations to test the following, 
+
+$N_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{gt}$
+
+- Where $N_{gt}$ is 1 if group $g$ eached nature as terminal node in round $t$ and 0 otherwise,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE,  message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
 from_subsession = 1
@@ -1077,12 +1601,276 @@ df = stage %>%
     N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
     Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
     mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
     GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
   ) %>%
   ungroup()
 
 reg = lm(
-  Nature ~ mpcr + log(GE_diff),
+  Nature ~ MPCR_0.30 + log(GE_diff),
+  df
+)
+summary(reg)
+
+
+```
+
+
+#### Reaching F1
+
+
+Below is a parametric test, 
+
+$F1_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{g}$
+
+- Where $F1_{g}$ is the percent of the time group $g$ reached F1 as their terminal node,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarize(
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+
+reg = lm(
+  F1_percent ~ MPCR_0.30 + log(GE_diff),
+  df
+)
+summary(reg)
+
+```
+
+
+Below is another parametric test, this time using group-round level observations to test the following, 
+
+$F1_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{gt}$
+
+- Where $F1_{gt}$ is 1 if group $g$ eached F1 as terminal node in round $t$ and 0 otherwise,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+reg = lm(
+  F1 ~ MPCR_0.30 + log(GE_diff),
+  df
+)
+summary(reg)
+
+
+```
+
+-------
+
+#### Reaching A1
+
+
+Below is a parametric test, 
+
+$A1_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{g}$
+
+- Where $A1_{g}$ is the percent of the time group $g$ reached A1 as their terminal node,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarize(
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+
+reg = lm(
+  A1_percent ~ MPCR_0.30 + log(GE_diff),
+  df
+)
+summary(reg)
+
+```
+
+
+Below is another parametric test, this time using group-round level observations to test the following, 
+
+$A1_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{gt}$
+
+- Where $A1_{gt}$ is 1 if group $g$ eached A1 as terminal node in round $t$ and 0 otherwise,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE,  message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+reg = lm(
+  A1 ~ MPCR_0.30 + log(GE_diff),
+  df
+)
+summary(reg)
+
+
+```
+
+--------
+
+#### Reaching A3
+
+
+Below is a parametric test, 
+
+$A3_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{g}$
+
+- Where $A3_{g}$ is the percent of the time group $g$ reached A3 as their terminal node,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarize(
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+
+reg = lm(
+  A3_percent ~ MPCR_0.30 + log(GE_diff),
+  df
+)
+summary(reg)
+
+```
+
+
+Below is another parametric test, this time using group-round level observations to test the following, 
+
+$A3_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \epsilon_{gt}$
+
+- Where $A3_{gt}$ is 1 if group $g$ eached A3 as terminal node in round $t$ and 0 otherwise,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+
+
+```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
+
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+reg = lm(
+  A3 ~ MPCR_0.30 + log(GE_diff),
   df
 )
 summary(reg)
@@ -1095,21 +1883,14 @@ summary(reg)
 
 
 
-
-
-
-
-
-
-
 -----
 
 ```{r, results='asis', echo=FALSE}
 
 cat(
-  " Compiled by Curtis Kephart, ",
-  Sys.getenv()["RSTUDIO_USER_IDENTITY"],", ",
+  " Compiled ",
   as.character(as.POSIXlt(Sys.time(), "GMT")), " GMT",
+  
   sep = ""
 )
 ```

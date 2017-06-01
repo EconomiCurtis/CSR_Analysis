@@ -8,12 +8,16 @@ library(haven)
 
  
 
+ServerDIR = '/home/cmk11/projects/CSR_Analysis/'
+homeDIR = ''
+DIR = homeDIR
+
 # Load stage game summary data ----
-stage = read_csv('/home/cmk11/projects/CSR_Analysis/data/20170521_csr_030mpcr/csr_3_stageT (accessed 2017-05-21).csv')
+stage = read_csv(paste(DIR,'data/20170521_csr_030mpcr/csr_3_stageT (accessed 2017-05-21).csv',sep=""))
 stage = bind_rows(
   stage,
-  read_csv('/home/cmk11/projects/CSR_Analysis/data/20170521_csr_075mpcr/csr_3_stageT (accessed 2017-05-21).csv'),
-  read_csv('/home/cmk11/projects/CSR_Analysis/data/20170522_csr_030mpcr/csr_3_stageT (accessed 2017-05-22).csv')
+  read_csv(paste(DIR,'data/20170521_csr_075mpcr/csr_3_stageT (accessed 2017-05-21).csv',sep="")),
+  read_csv(paste(DIR,'data/20170522_csr_030mpcr/csr_3_stageT (accessed 2017-05-22).csv',sep=""))
 ) %>% ungroup()
 
 stage = stage %>%
@@ -30,8 +34,8 @@ stage = stage %>%
 
 # Load RET Scores ----
 ret = bind_rows(
-  read_csv("/home/cmk11/projects/CSR_Analysis/data/20170521_csr_030mpcr/csr_0_realeffort (accessed 2017-05-21).csv"),
-  read_csv("/home/cmk11/projects/CSR_Analysis/data/20170521_csr_075mpcr/csr_0_realeffort (accessed 2017-05-21).csv")
+  read_csv(paste(DIR,'data/20170521_csr_030mpcr/csr_0_realeffort (accessed 2017-05-21).csv',sep="")),
+  read_csv(paste(DIR,'data/20170521_csr_075mpcr/csr_0_realeffort (accessed 2017-05-21).csv',sep=""))
 ) %>%
   mutate(
     participant._round_number = as.integer(participant._round_number),
@@ -42,7 +46,7 @@ ret = bind_rows(
   ) %>% ungroup()
 ret = bind_rows(
   ret, 
-  read_csv("/home/cmk11/projects/CSR_Analysis/data/20170522_csr_030mpcr/csr_0_realeffort (accessed 2017-05-22).csv")
+  read_csv(paste(DIR,"data/20170522_csr_030mpcr/csr_0_realeffort (accessed 2017-05-22).csv",sep=""))
 ) %>% ungroup()
 #cleanup ret
 ret = ret %>%
@@ -53,7 +57,7 @@ ret = ret %>%
 
 write.csv(
   ret, 
-  "/home/cmk11/projects/CSR_Analysis/data/production_RET.csv")
+  paste(DIR,"data/production_RET.csv",sep=""))
 
 
 
@@ -66,12 +70,12 @@ write.csv(
   
 
 VCM = bind_rows(
-  read_csv("/home/cmk11/projects/CSR_Analysis/data/20170521_csr_030mpcr/csr_2_vcm (accessed 2017-05-21).csv"),
-  read_csv("/home/cmk11/projects/CSR_Analysis/data/20170521_csr_075mpcr/csr_2_vcm (accessed 2017-05-21) (1).csv")
+  read_csv(paste(DIR,"data/20170521_csr_030mpcr/csr_2_vcm (accessed 2017-05-21).csv",sep="")),
+  read_csv(paste(DIR,"data/20170521_csr_075mpcr/csr_2_vcm (accessed 2017-05-21) (1).csv",sep=""))
 )  %>% ungroup()
 VCM = bind_rows(
   VCM,
-  read_csv("/home/cmk11/projects/CSR_Analysis/data/20170522_csr_030mpcr/csr_2_vcm (accessed 2017-05-22).csv")
+  read_csv(paste(DIR,"data/20170522_csr_030mpcr/csr_2_vcm (accessed 2017-05-22).csv",sep=""))
 )%>%
   dplyr::filter( !is.na(player.group_exchange)) %>%
   dplyr::filter(session.code %in% unique(stage$session.code)) %>%
@@ -101,7 +105,7 @@ rm(temp)
 
 write.csv(
   stage, 
-  "/home/cmk11/projects/CSR_Analysis/data/productionDataStage.csv")
+  paste(DIR,"data/productionDataStage.csv",sep=""))
 
 stage_dta = stage 
 names(stage_dta) = gsub('\\.', '_',names(stage_dta))
@@ -115,11 +119,11 @@ stage_dta = stage_dta%>%
 
 write_dta(
   stage_dta, 
-  "/home/cmk11/projects/CSR_Analysis/data/productionDataStageSTATA.dta")
+  paste(DIR,"data/productionDataStageSTATA.dta",sep=""))
 
 write.csv(
   VCM, 
-  "/home/cmk11/projects/CSR_Analysis/data/productionDataVCM.csv")
+  paste(DIR,"data/productionDataVCM.csv",sep=""))
 
 VCM_dta = VCM
 names(VCM_dta) = gsub('\\.', '_',names(VCM_dta))
@@ -130,11 +134,11 @@ VCM_dta = VCM_dta %>%
   ) %>% ungroup()
 write_dta(
   VCM_dta, 
-  "/home/cmk11/projects/CSR_Analysis/data/productionData_VCM_STATA.dta")
+  paste(DIR,"data/productionData_VCM_STATA.dta",sep=""))
 
 write.csv(
   ret, 
-  "/home/cmk11/projects/CSR_Analysis/data/production_RET.csv")
+  paste(DIR,"data/production_RET.csv",sep=""))
 
 
 ret_dta = ret 
@@ -145,7 +149,7 @@ ret_dta = ret_dta %>%
   ) %>% ungroup()
 write_dta(
   ret_dta, 
-  "/home/cmk11/projects/CSR_Analysis/data/productionData_RET_STATA.dta")
+  paste(DIR,"data/productionData_RET_STATA.dta",sep=""))
 
 
   

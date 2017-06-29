@@ -689,23 +689,46 @@ ggplot(
 ## Stage Game
 
 
-```{r}
-library(d3Tree)
-dtree = data.frame(
-  Node1  = c('A1','A1','A2','A2','A2','A2','A2','A2','A2','A2'),
-  Node2  = c('Role A Payoff: 1','Role F Payoff: 2', 'F1','F1','F2','F2','F2','F2','F2','F2'),
-  Node3  = c( NA,  NA,'Role A Payoff: 1','Role F Payoff: 2', 'A3','A3','A4','A4','A4','A4'),
-  Node4  = c( NA,  NA,NA,NA,'Role A Payoff: 1','Role F Payoff: 2', 'N1','N1','N2','N2'),
-  PAYOFFS = c(NA,NA,NA,NA,NA,NA,'Role A Payoff: 1','Role F Payoff: 2','Role A Payoff: 1','Role F Payoff: 2'),
-  Node5  = c( NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
-)
-  d3tree(list(root = df2tree(rootname = 'Stage Game',
-                             struct = dtree),
-                             layout = 'cartesian'))
+```{r, echo = F}
+# # must be hidden when compiline. 
+# 
+# library(d3Tree)
+# dtree = data.frame(
+#   Node1  = c('A1','A1','A2','A2','A2','A2','A2','A2','A2','A2'),
+#   Node2  = c('Role A Payoff: 1','Role F Payoff: 2', 'F1','F1','F2','F2','F2','F2','F2','F2'),
+#   Node3  = c( NA,  NA,'Role A Payoff: 1','Role F Payoff: 2', 'A3','A3','A4','A4','A4','A4'),
+#   Node4  = c( NA,  NA,NA,NA,'Role A Payoff: 1','Role F Payoff: 2', 'N1','N1','N2','N2'),
+#   PAYOFFS = c(NA,NA,NA,NA,NA,NA,'Role A Payoff: 1','Role F Payoff: 2','Role A Payoff: 1','Role F Payoff: 2'),
+#   Node5  = c( NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+# )
+#   d3tree(list(root = df2tree(rootname = 'Stage Game',
+#                              struct = dtree),
+#                              layout = 'cartesian'))
 ```
 
-Below, reports the overall percent each terminal node choice was selected by stage game groups. 
 
+Treatment subject summary tables
+
+
+
+Below, reports the overall percent each terminal node choice was selected by stage game groups. Number of groups are the numbers below divided by two. 
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE}
+
+df = stage %>%
+  dplyr::distinct(participant.code, session.code, player.mpcr) %>%
+  dplyr::group_by(player.mpcr) %>%
+  dplyr::summarise(n=n())
+
+kable(
+  format = "pandoc",
+  align = 'c',
+  col.names = c('MPCR','N Subjects'),
+  df
+)
+
+
+```
 
 ```{r, echo=FALSE, fig.height=3.5, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE}
 

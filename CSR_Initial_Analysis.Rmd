@@ -16,7 +16,8 @@ output:
 ```{r, echo=FALSE, results='asis'}
 cat(
   " Compiled by Curtis Kephart, curtis.kephart@nyu.edu, ",
-  " with [R Markdown](http://rmarkdown.rstudio.com) Notebook. ",
+  " with [R Markdown](http://rmarkdown.rstudio.com) Notebook.
+  On github here [github.com/EconomiCurtis/CSR_Analysis](https://github.com/EconomiCurtis/CSR_Analysis).",
   sep = ""
 )
 ```

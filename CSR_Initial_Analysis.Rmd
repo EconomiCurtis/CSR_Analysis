@@ -12,8 +12,8 @@ output:
     fig_width: 10.6
 ---
 
-```{r, echo=F, results='asis'}
 
+```{r, echo=FALSE, results='asis'}
 cat(
   " Compiled by Curtis Kephart, curtis.kephart@nyu.edu, ",
   " with [R Markdown](http://rmarkdown.rstudio.com) Notebook. ",
@@ -21,7 +21,9 @@ cat(
 )
 ```
 
-```{r, echo=F, results='asis'}
+
+
+```{r, echo=FALSE, results='asis'}
 
 cat(
   as.character(Sys.time())," GMT, ",
@@ -30,21 +32,20 @@ cat(
 )
 ```
 
-
+-----
 
 ```{r, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE, cache=FALSE}
 #' for workign with rmarkdown,  
 #' see https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf 
 
-source("etl_prod.r")
+source("code/etl_prod.r")
 library(knitr) #for the kable tables
 library(tidyr)
 library(ggplot2)
 library(dplyr)
+
 ```
 
-
-----
 
 ## Real Effort Task
 
@@ -1915,7 +1916,6 @@ summary(reg)
 
 
 ```
-
 
 
 

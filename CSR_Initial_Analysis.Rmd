@@ -292,8 +292,8 @@ ggplot(
     title = "Distribution of Public Good Contributions"
   ) +
   facet_grid(Type~MPCR ) +
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 30))
+  theme_bw()
+
 ```
 
 
@@ -345,7 +345,7 @@ ggplot(
 Subjects played ten VCM rounds. As rounds progressed, rates of public goods contribution declined. 
 
 
-```{r, echo = FALSE, message=FALSE, fig.height=3.5, fig.width=5.5}
+```{r, echo = FALSE, message=FALSE, fig.height=4, fig.width=6.5}
 
 ggplot(
   df %>% filter(
@@ -362,7 +362,7 @@ ggplot(
     x = "Round",
     y = "Public Good Contribution, Percent", 
     title = " ",
-    caption = "Simple LOESS Smoother, span = 0.75"
+    subtitle = "Simple LOESS Smoother, span = 0.75"
   ) +
   theme_minimal()
 
@@ -595,7 +595,7 @@ ggplot(
       )
 ) +
   geom_point(
-    size = 8, alpha = .5
+    size = 10, alpha = .5
       ) +
   ylim(0,.96) +
   xlab("Pair") +
@@ -731,7 +731,7 @@ kable(
 
 ```
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=5, message=FALSE, warning=FALSE, error=FALSE}
+```{r, echo=FALSE, fig.height=3.5, fig.width=5.5, message=FALSE, warning=FALSE, error=FALSE}
 
 
 df = stage %>%
@@ -866,13 +866,7 @@ df = bind_rows(
 
 
 ggplot(
-  df %>%
-    mutate(
-      player.mpcr = ifelse(
-        player.mpcr == 0.3, 
-        "MPCR: 0.3", "MPCR: 0.75"
-      )
-    ),
+  df,
   aes(
     x = subsession.round_number,
     y = value,
@@ -884,10 +878,9 @@ ggplot(
     labs(
     x = "Round",
     y = "Percent", 
-    fill = "Terminal Node",
     title = "Frequency of Terminal Node Choice Over Rounds"
   ) +
-  theme_minimal() +
+  theme_light() +
   facet_grid(player.mpcr~.)
 ```
 
@@ -963,10 +956,6 @@ df = df %>%
     percent_char = paste(((100 * n / total) %>% round(1)), "%", sep = "")
   )
 
-# The palette with grey:
-cbPalette <- c("#efefef", "#8c8c8c", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
-
 ggplot(
   df, 
   aes(
@@ -989,10 +978,7 @@ ggplot(
   theme_minimal(  ) +
   theme(
         plot.title = element_text(hjust = 0.5)
-  ) +
-  scale_colour_manual(values=cbPalette) +
-    scale_fill_manual(values=cbPalette)
-
+  )
 
 
 
@@ -1094,10 +1080,7 @@ ggplot(
   theme(
         plot.title = element_text(hjust = 0.5)
   ) +
-  facet_grid(~mpcr) +
-  scale_colour_manual(values=cbPalette) +
-    scale_fill_manual(values=cbPalette)
-
+  facet_grid(~mpcr)
 
 
 
@@ -1596,13 +1579,14 @@ $N_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + 
 - $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
 - $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
 
+In a draft of the paper, under "Table 2. Regression Results I." results for $N_g$
 
 ```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
 from_subsession = 1
 to_subsession   = 10
-df_group = stage %>%
+df = stage %>%
   filter(
     subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
   ) %>%
@@ -1621,14 +1605,11 @@ df_group = stage %>%
   ungroup()
 
 
-
-
-
-reg_N_group = lm(
+reg = lm(
   Nature_percent ~ MPCR_0.30 + log(GE_diff),
-  df_group
+  df
 )
-summary(reg_N_group)
+summary(reg)
 
 ```
 
@@ -1647,7 +1628,7 @@ $N_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) +
 
 from_subsession = 1
 to_subsession   = 10
-df_per = stage %>%
+df = stage %>%
   filter(
     subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
   ) %>%
@@ -1665,11 +1646,11 @@ df_per = stage %>%
   ) %>%
   ungroup()
 
-reg_N_per = lm(
+reg = lm(
   Nature ~ MPCR_0.30 + log(GE_diff),
-  df_per
+  df
 )
-summary(reg_N_per)
+summary(reg)
 
 
 ```
@@ -1686,14 +1667,37 @@ $F1_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) +
 - $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
 - $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
 
+In a draft of the paper, under "Table 2. Regression Results I." results for $F1_g$
 
 ```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
-reg_F1_group = lm(
+
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarize(
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+
+reg = lm(
   F1_percent ~ MPCR_0.30 + log(GE_diff),
-  df_group
+  df
 )
-summary(reg_F1_group)
+summary(reg)
 
 ```
 
@@ -1710,12 +1714,31 @@ $F1_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) 
 ```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
 
-reg_F1_per = lm(
+reg = lm(
   F1 ~ MPCR_0.30 + log(GE_diff),
-  df_per
+  df
 )
-summary(reg_F1_per)
+summary(reg)
 
 
 ```
@@ -1733,17 +1756,37 @@ $A1_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) +
 - $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
 - $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
 
+In a draft of the paper, under "Table 2. Regression Results I." results for $A1_g$
 
 ```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarize(
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
 
 
-reg_A1_group = lm(
+reg = lm(
   A1_percent ~ MPCR_0.30 + log(GE_diff),
-  df_group
+  df
 )
-summary(reg_A1_group)
+summary(reg)
 
 ```
 
@@ -1760,11 +1803,31 @@ $A1_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) 
 ```{r, echo = FALSE,  message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
-reg_A1_per = lm(
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+reg = lm(
   A1 ~ MPCR_0.30 + log(GE_diff),
-  df_per
+  df
 )
-summary(reg_A1_per)
+summary(reg)
 
 
 ```
@@ -1782,16 +1845,37 @@ $A3_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) +
 - $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
 - $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
 
+In a draft of the paper, under "Table 2. Regression Results I." results for $A3_g$
 
 ```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarize(
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
 
-reg_A3_group = lm(
+
+reg = lm(
   A3_percent ~ MPCR_0.30 + log(GE_diff),
-  df_group
+  df
 )
-summary(reg_A3_group)
+summary(reg)
 
 ```
 
@@ -1808,18 +1892,61 @@ $A3_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) 
 ```{r, echo = FALSE, message=FALSE, fig.height=2.5, fig.width=4.5}
 
 
-reg_A3_per = lm(
+from_subsession = 1
+to_subsession   = 10
+df = stage %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+  ) %>%
+  ungroup()
+
+reg = lm(
   A3 ~ MPCR_0.30 + log(GE_diff),
-  df_per
+  df
 )
-summary(reg_A3_per)
+summary(reg)
 
 
 ```
 
 
------
 
+```{r}
+stage %>%
+dplyr::group_by(session.code, group.id_in_subsession)
+  arrange(session.code, group.id_in_subsession, subsession.round_number, player.player_role)    
+  summarize(
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    mpcr = unique(player.mpcr),
+    MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
+)
+    mutate(session.code, A3, .dots)
+    neg_recip = arrange(session.code, Nature, .dots) + mutate(A3)
+  ungroup()
+
+```
+
+
+
+-----
 
 ```{r, results='asis', echo=FALSE}
 

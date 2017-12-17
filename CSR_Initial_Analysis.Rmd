@@ -1788,6 +1788,9 @@ reg = lm(
 )
 summary(reg)
 
+
+
+
 ```
 
 
@@ -1935,77 +1938,79 @@ contribution to the group exchange was unequal.
 
 
 
-Below is a parametric test, 
 
-$N_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) $
-$ \beta_4 \cdot F1_neg_recip_percent + \epsilon_{g}$
+Below is another parametric test, this time using group-round level observations to test the following, 
 
-- Where $N_{g}$ is the percent of the time group $g$ reached nature as their terminal node,
+$N_{gt} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) + \beta_4 \cdot {NegRecip_{gt}}+ \epsilon_{gt}$
+
+- Where $N_{gt}$ is 1 if group $g$ eached nature as terminal node in round $t$ and 0 otherwise,
 - $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
 - $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
-- $F1_neg_recip_percent$ is $NegRecip$ discussed above. 
+- $NegRecip_{gt}$ is 1 if in the previous round player F select F2, and 0 otherwise. 
 
-In a draft of the paper, under "Table 3. Regression Results II." around a discussion about negative reciprocity. 
+Note:
+- This is a probit
+- Note the increased DoF. The unit of observation is the PERIOD-Group level. Unlike previous obs, which were the stage-group session level. That is, averaging group behavior over all periods. 
+- Since $NegRecip_{gt}$ is a lag term, we run over periods 2-10. 
 
-We note the insignificance of the coefficient on $NegRecip$.
+In a draft of the paper, the following is used as Table 3. "Regression Results II."
 
-```{r, echo = FALSE, message=FALSE, warning=FALSE, fig.height=2.5, fig.width=4.5}
+```{r, echo = FALSE,  message=FALSE, fig.height=2.5, fig.width=4.5}
 
-source("code/20170822_negative_reciprocity.r")
 
-from_subsession = 2
+from_subsession = 1
 to_subsession   = 10
-
-df = left_join(
-  stage, Stage_neg_repc
-)  %>%
+df = stage %>%
   filter(
     subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
   ) %>%
-  group_by(session.code, group.id_in_subsession) %>%
+  group_by(session.code, group.id_in_subsession, subsession.round_number) %>%
   summarize(
-    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
-    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
-    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
-    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
-    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
-    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
     mpcr = unique(player.mpcr),
     MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
     GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent),
-    negrep_test_avg = unique(negrep_test_avg)
+    F2_prev_period = sum(ifelse(player.F_stage2 == 'F2', 1, 0), na.rm = TRUE)
   ) %>%
-  ungroup()
-
-df2 = stage  %>%
-  filter(
-    subsession.round_number >= 1 & subsession.round_number <= to_subsession
-  ) %>%
-  group_by(session.code, group.id_in_subsession, player.stage_round_count) %>%
-  summarize(
-    F1 = sum(ifelse((player.F_stage2) == "F1",1,0), na.rm = TRUE)
-  )   %>%
-  filter(
-    player.stage_round_count >= from_subsession & player.stage_round_count <= to_subsession
-  ) %>%
+  ungroup() %>%
   group_by(session.code, group.id_in_subsession) %>%
-  summarise(
-    F1_neg_recip_percent = sum(F1) / length(F1),
-    n=n())
-  
-  df = left_join(
-    df, df2
+  mutate(
+    F2_prev_period_lag = lag(F2_prev_period)
   )
 
+# reg = lm(
+#   Nature ~ MPCR_0.30 + log(GE_diff) + negrep_test,
+#   df
+# )
+# summary(reg)
+# 
+# reg = lm(
+#   Nature ~ MPCR_0.30 + log(GE_diff) + F2_prev_period_lag,
+#   df
+# )
+# summary(reg)
 
-reg = glm(
-  Nature_percent ~ MPCR_0.30 + log(GE_diff) + F1_percent,
+
+reg = glm( 
+  Nature ~ MPCR_0.30 + log(GE_diff) + F2_prev_period_lag,
   df,
   family = binomial(link = "probit")
 )
 summary(reg)
 
+library(rcompanion)
+nagelkerke(reg)
+
 ```
+
+
+
+
 
 
 

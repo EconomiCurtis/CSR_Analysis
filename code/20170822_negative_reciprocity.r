@@ -74,7 +74,7 @@ Stage_neg_repc = Stage_neg_repc %>%
     session.code, group.id_in_subsession,subsession.round_number, negrep_test, negrep_test_avg
   )
 
-Stage_neg_repc %>%
+Stage_neg_repc_perAvg = Stage_neg_repc %>%
   distinct(session.code, group.id_in_subsession, negrep_test_avg) %>%
   as.data.frame
 

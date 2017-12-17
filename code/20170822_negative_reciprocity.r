@@ -74,6 +74,9 @@ Stage_neg_repc = Stage_neg_repc %>%
     session.code, group.id_in_subsession,subsession.round_number, negrep_test, negrep_test_avg
   )
 
+Stage_neg_repc %>%
+  distinct(session.code, group.id_in_subsession, negrep_test_avg) %>%
+  as.data.frame
 
 # Okay, so the variable "negrep_test" is the percent of times that A-players met this condition. 
 # The condition could be interpreted as "fuck you" to the F player. 

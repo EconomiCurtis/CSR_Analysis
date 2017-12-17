@@ -1921,26 +1921,89 @@ summary(reg)
 
 ```
 
+----
+
+### Negative Reciprocity
+
+Finally, we control for the possibility of negative reciprocity driving the behavior of our
+subjects. We do so by introducing another variable in the regression specification that accounts for
+the percent of the time that the Role F player selected F2 in rounds 2 through 10 ($NegRecip$) with
+the specification estimated as a probit. This represents negative reciprocity since we expect Role
+A players to select Nature due to negative reciprocity only when Role F players select F2,
+otherwise Role A player’s selection of Nature is due to the perception that the Role F players
+contribution to the group exchange was unequal.
 
 
-```{r}
-stage %>%
-dplyr::group_by(session.code, group.id_in_subsession)
-  arrange(session.code, group.id_in_subsession, subsession.round_number, player.player_role)    
+
+Below is a parametric test, 
+
+$N_{g} = \beta_0 + \beta_1 \cdot \delta MPCR_{g} + \beta_3 \cdot ln(GEdiff_g) $
+$ \beta_4 \cdot F1_neg_recip_percent + \epsilon_{g}$
+
+- Where $N_{g}$ is the percent of the time group $g$ reached nature as their terminal node,
+- $\delta MPCR_{g}$ is 1 if this group faced a MPCR of 0.3 and 0 otherwise, 
+- $GEdiff_g$ is this group's difference between player average public good contribution rates in the VCM game. 
+- $F1_neg_recip_percent$ is $NegRecip$ discussed above. 
+
+In a draft of the paper, under "Table 3. Regression Results II." around a discussion about negative reciprocity. 
+
+We note the insignificance of the coefficient on $NegRecip$.
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, fig.height=2.5, fig.width=4.5}
+
+source("code/20170822_negative_reciprocity.r")
+
+from_subsession = 2
+to_subsession   = 10
+
+df = left_join(
+  stage, Stage_neg_repc
+)  %>%
+  filter(
+    subsession.round_number >= from_subsession & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
   summarize(
-    A1 = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
-    F1 = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
-    A3 = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
-    N1 = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
-    N2 = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
-    Nature= sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
+    A1_percent = sum(ifelse(player.terminal_choice == "A1",1,0)) / length(player.terminal_choice),
+    F1_percent = sum(ifelse(player.terminal_choice == "F1",1,0)) / length(player.terminal_choice),
+    A3_percent = sum(ifelse(player.terminal_choice == "A3",1,0)) / length(player.terminal_choice),
+    N1_percent = sum(ifelse(player.terminal_choice == "N1",1,0)) / length(player.terminal_choice),
+    N2_percent = sum(ifelse(player.terminal_choice == "N2",1,0)) / length(player.terminal_choice),
+    Nature_percent = sum(ifelse(player.terminal_choice %in% c("N2","N1"),1,0)) / length(player.terminal_choice),
     mpcr = unique(player.mpcr),
     MPCR_0.30 = ifelse(mpcr == 0.3, 1, 0),
-    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent)
-)
-    mutate(session.code, A3, .dots)
-    neg_recip = arrange(session.code, Nature, .dots) + mutate(A3)
+    GE_diff = max(vcm_mean_ge_percent) - min(vcm_mean_ge_percent),
+    negrep_test_avg = unique(negrep_test_avg)
+  ) %>%
   ungroup()
+
+df2 = stage  %>%
+  filter(
+    subsession.round_number >= 1 & subsession.round_number <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession, player.stage_round_count) %>%
+  summarize(
+    F1 = sum(ifelse((player.F_stage2) == "F1",1,0), na.rm = TRUE)
+  )   %>%
+  filter(
+    player.stage_round_count >= from_subsession & player.stage_round_count <= to_subsession
+  ) %>%
+  group_by(session.code, group.id_in_subsession) %>%
+  summarise(
+    F1_neg_recip_percent = sum(F1) / length(F1),
+    n=n())
+  
+  df = left_join(
+    df, df2
+  )
+
+
+reg = glm(
+  Nature_percent ~ MPCR_0.30 + log(GE_diff) + F1_percent,
+  df,
+  family = binomial(link = "probit")
+)
+summary(reg)
 
 ```
 
